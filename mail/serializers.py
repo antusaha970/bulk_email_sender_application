@@ -11,7 +11,7 @@ class SMTPConfigurationSerializer(serializers.ModelSerializer):
 class EmailComposeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Email_Compose
-        fields = "__all__"
+        fields = ['id','subject']
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
