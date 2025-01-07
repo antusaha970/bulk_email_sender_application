@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import EmailComposeSerializer
-from .models import Attachment, Outbox, Recipient
 from django.db import transaction
+from .models import *
+from .serializers import *
 
 
 class MailView(APIView):
@@ -47,3 +47,28 @@ class MailView(APIView):
                 'status': 'failed',
             }
             return Response(data_with_errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EmailComposeView(APIView):
+
+    def get(self):
+        emails = Email_Compose.objects.all()
+        serializer = EmailComposeSerializer(emails, many=True)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+
+class ViewsSpecificMail(APIView):
+    def get(self):
+        outbox_entries = Outbox.objects.all()
+
+        data = [
+            {
+                "emailId": entry.email_compose.id,
+                "email_address": entry.email_address,
+                "status": entry.status,
+                "failed_reason": entry.failed_reason,
+            }
+            for entry in outbox_entries
+        ]
+
+        return Response({"data": data}, status=status.HTTP_200_OK)
