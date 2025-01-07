@@ -51,15 +51,15 @@ class MailView(APIView):
 
 class EmailComposeView(APIView):
 
-    def get(self):
+    def get(self, request):
         emails = Email_Compose.objects.all()
         serializer = EmailComposeSerializer(emails, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ViewsSpecificMail(APIView):
-    def get(self):
-        outbox_entries = Outbox.objects.all()
+    def get(self, request, id):
+        outbox_entries = Outbox.objects.filter(email_compose__id=id)
 
         data = [
             {

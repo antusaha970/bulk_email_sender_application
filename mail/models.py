@@ -47,7 +47,7 @@ class Email_Compose(models.Model):
 
 
 class Attachment(models.Model):
-    file = models.FileField()
+    file = models.FileField(upload_to="attachmentsFiles/")
     email_compose = models.ForeignKey(Email_Compose, on_delete=models.CASCADE)
 
     # record keeping
