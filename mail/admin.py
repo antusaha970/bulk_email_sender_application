@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+admin.site.register(Email_Compose)
+admin.site.register(SMTPConfiguration)
+admin.site.register(Recipient)
+admin.site.register(Outbox)
+admin.site.register(Attachment)

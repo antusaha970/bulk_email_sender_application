@@ -36,7 +36,7 @@ class Email_Compose(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField()
     configurations = models.OneToOneField(
-        SMTPConfiguration, on_delete=models.SET_NULL, null=True)
+        SMTPConfiguration, on_delete=models.SET_NULL, null=True, blank=True)
 
     # record keeping
     created_at = models.DateTimeField(auto_now_add=True)
