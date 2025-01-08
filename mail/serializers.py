@@ -5,7 +5,12 @@ from .models import *
 class SMTPConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = "__all__"
+        fields = ['username', 'password', 'host']
+        extra_kwargs = {
+            'username': {'required': True},
+            'password': {'required': True},
+            'host': {'required': True},
+        }
 
 
 class EmailComposeSerializer(serializers.ModelSerializer):

@@ -72,3 +72,22 @@ class ViewsSpecificMail(APIView):
         ]
 
         return Response({"data": data}, status=status.HTTP_200_OK)
+
+
+class SMTPConfigurationView(APIView):
+    def post(self, request):
+        data = request.data
+        serializer = SMTPConfigurationSerializer(data=data)
+        if serializer.is_valid():
+            config = serializer.save()
+            return Response({
+                "status": "success",
+                "details": "Successfully added configuration",
+                "username": config.username,
+                "id": config.id
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "status": "faild",
+                "details": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
