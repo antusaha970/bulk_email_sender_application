@@ -12,7 +12,6 @@ class MailView(APIView):
     def post(self, request):
         try:
             data = request.data
-            print("Data from request")
             subject = data.get('subject')
             body = data.get('body')
             email_addresses = data.getlist('email_addresses')
