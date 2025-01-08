@@ -4,6 +4,7 @@ from rest_framework import status
 from django.db import transaction
 from .models import *
 from .serializers import *
+from config.tasks import send_bulk_mails
 
 
 class MailView(APIView):
@@ -28,9 +29,9 @@ class MailView(APIView):
                 for email in email_addresses:
                     Outbox.objects.create(
                         email_address=email, status='pending', email_compose=email_compose)
-                    Recipient.objects.create(
-                        email_address=email, status='pending', email_compose=email_compose)
-                # TODO: trigger celery worker for background mail sending
+
+                id = send_bulk_mails.delay_on_commit(email_compose.id)
+                print("ID: ", id)
             else:
                 data_with_errors = {
                     'errors': [email_compose_serializer.errors],
@@ -53,7 +54,7 @@ class EmailComposeView(APIView):
 
     def get(self, request):
         emails = Email_Compose.objects.all()
-        serializer = EmailComposeSerializer(emails, many=True)
+        serializer = EmailComposeSerializerForView(emails, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
