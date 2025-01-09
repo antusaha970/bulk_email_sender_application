@@ -1,8 +1,10 @@
 from celery import shared_task
 from mail.models import Email_Compose, Outbox, Recipient, Attachment, SMTPConfiguration
-from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django.core.mail import EmailMessage
+from smtplib import SMTPException
+from django.core.validators import validate_email
+from django.db import transaction
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=3)
@@ -35,15 +37,81 @@ def send_bulk_mails(self, email_compose_id):
                         connection=email_backend,  # Pass the custom backend
 
                     )
+                    email.extra_headers = {
+                        'Return-Path': 'antu.digi.88@gmail.com'}
                     for attachment in attachments:
                         email.attach_file(attachment.file.path)
-                    email.send(fail_silently=False)
-                    outbox.status = 'success'
-                    outbox.save()
+                    try:
+                        email.send(fail_silently=False)
+                        outbox.status = 'success'
+                        outbox.save()
+                    except SMTPException as e:
+                        print("Error while sending mail: ", e)
+
                     Recipient.objects.create(
                         email_address=outbox.email_address, email_compose=outbox.email_compose, status="success")
                 except Exception as e:
                     print(e)
+            print("success..")
+            return True
+        except Exception as e:
+            print("Error ....")
+            print(e)
+    except Exception as exc:
+        print(exc)
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=3)
+def send_mails_to_specific_mail(self, email, email_compose_id):
+    print("Task received for mail: ", email)
+    try:
+        validate_email(email)
+        try:
+            email_compose = Email_Compose.objects.get(pk=email_compose_id)
+            attachments = Attachment.objects.filter(
+                email_compose=email_compose)
+            config = SMTPConfiguration.objects.get(
+                pk=email_compose.configurations.id)
+
+            email_backend = EmailBackend(
+                host='smtp.gmail.com',
+                port=587,
+                username=config.username,
+                password=config.password,
+                use_tls=True,
+                fail_silently=False,
+            )
+            outbox = Outbox.objects.get(
+                email_compose=email_compose, email_address=email)
+
+            try:
+                with transaction.atomic():
+                    # Create the email message
+                    email = EmailMessage(
+                        subject=email_compose.subject,
+                        body=email_compose.body,
+                        from_email='antu.digi.88@gmail.com',
+                        to=[outbox.email_address],
+                        connection=email_backend,  # Pass the custom backend
+                    )
+                    email.extra_headers = {
+                        'Return-Path': 'antu.digi.88@gmail.com'}
+                    for attachment in attachments:
+                        email.attach_file(attachment.file.path)
+                    try:
+                        email.send(fail_silently=False)
+                        outbox.status = 'success'
+                        outbox.save()
+                        Recipient.objects.create(
+                            email_address=outbox.email_address, email_compose=outbox.email_compose, status="success")
+                    except SMTPException as e:
+                        outbox.status = 'failed'
+                        outbox.save()
+                        self.retry(exc=exc)
+
+            except Exception as e:
+                print(e)
             print("success..")
             return True
         except Exception as e:

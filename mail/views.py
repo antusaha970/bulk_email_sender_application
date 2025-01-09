@@ -4,7 +4,7 @@ from rest_framework import status
 from django.db import transaction
 from .models import *
 from .serializers import *
-from config.tasks import send_bulk_mails
+from config.tasks import send_bulk_mails, send_mails_to_specific_mail
 
 
 class MailView(APIView):
@@ -26,11 +26,11 @@ class MailView(APIView):
                         Attachment.objects.create(
                             file=attachment, email_compose=email_compose)
                 for email in email_addresses:
-                    Outbox.objects.create(
+                    outbox = Outbox.objects.create(
                         email_address=email, status='pending', email_compose=email_compose)
+                    send_mails_to_specific_mail.delay_on_commit(
+                        outbox.email_address, email_compose.id)
 
-                id = send_bulk_mails.delay_on_commit(email_compose.id)
-                print("ID: ", id)
             else:
                 data_with_errors = {
                     'errors': [email_compose_serializer.errors],
