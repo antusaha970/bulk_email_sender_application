@@ -4,5 +4,6 @@ urlpatterns = [
     path('send_mail/', MailView.as_view()),
     path('view_mails/', EmailComposeView.as_view()),
     path('view_mails/<int:id>/', ViewsSpecificMail.as_view()),
-    path('set_configuration/', SMTPConfigurationView.as_view()),
+    path('configurations/', SMTPConfigurationView.as_view()),
+    path('configurations/', SMTPConfigurationView.as_view()),
 ]

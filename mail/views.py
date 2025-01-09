@@ -91,3 +91,9 @@ class SMTPConfigurationView(APIView):
                 "status": "faild",
                 "details": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        all_configurations = SMTPConfiguration.objects.all()
+        serializer = SMTPConfigurationSerializerForView(
+            all_configurations, many=True)
+        return Response(serializer.data)
