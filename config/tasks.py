@@ -8,6 +8,7 @@ from django.core.mail import EmailMessage
 @shared_task(bind=True, max_retries=3, default_retry_delay=3)
 def send_bulk_mails(self, email_compose_id):
     try:
+        raise Exception("sdfsdf")
         try:
             email_compose = Email_Compose.objects.get(pk=email_compose_id)
             attachments = Attachment.objects.filter(
@@ -33,10 +34,11 @@ def send_bulk_mails(self, email_compose_id):
                         from_email='antu.digi.88@gmail.com',
                         to=[outbox.email_address],
                         connection=email_backend,  # Pass the custom backend
+
                     )
                     for attachment in attachments:
                         email.attach_file(attachment.file.path)
-                    email.send()
+                    email.send(fail_silently=False)
                     outbox.status = 'success'
                     outbox.save()
                     Recipient.objects.create(

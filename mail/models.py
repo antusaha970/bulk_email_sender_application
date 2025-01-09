@@ -35,7 +35,7 @@ class SMTPConfiguration(models.Model):
 class Email_Compose(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField()
-    configurations = models.OneToOneField(
+    configurations = models.ForeignKey(
         SMTPConfiguration, on_delete=models.SET_NULL, null=True, blank=True)
 
     # record keeping
