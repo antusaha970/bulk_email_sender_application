@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 3rd party
+    'corsheaders',
     'rest_framework',
     'django_celery_results',
     # custom
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -117,3 +119,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'antu.digi.88@gmail.com'
 EMAIL_HOST_PASSWORD = 'jqmvdwmoarwzuytr'
+
+
+# CORS setting
+CORS_ORIGIN_ALLOW_ALL = True

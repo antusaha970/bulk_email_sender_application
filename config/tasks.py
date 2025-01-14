@@ -117,6 +117,7 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
         except Exception as e:
             print("Error ....")
             print(e)
+            raise self.retry(exc=exc)
     except Exception as exc:
         print(exc)
         raise self.retry(exc=exc)

@@ -17,6 +17,7 @@ class MailView(APIView):
             email_addresses = data.getlist('email_addresses')
             configuration = data.get('configuration', None)
             attachments = data.getlist('attachments', None)
+            print("all attachments: ", attachments)
             email_compose_serializer = EmailComposeSerializer(
                 data={'subject': subject, 'body': body, 'configurations': configuration})
             if email_compose_serializer.is_valid():

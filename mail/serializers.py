@@ -11,11 +11,10 @@ class SMTPConfigurationSerializerForView(serializers.ModelSerializer):
 class SMTPConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = ['username', 'password', 'host']
+        fields = ['username', 'password']
         extra_kwargs = {
             'username': {'required': True},
             'password': {'required': True},
-            'host': {'required': True},
         }
 
     def validate(self, attrs):
