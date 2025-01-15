@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class SMTPConfiguration(models.Model):
@@ -28,6 +29,10 @@ class SMTPConfiguration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # relations
+    user = models.ForeignKey(User, related_name="user_configs",
+                             on_delete=models.CASCADE, blank=True, null=True)
+
     def __str__(self):
         return self.username
 
@@ -41,6 +46,9 @@ class Email_Compose(models.Model):
     # record keeping
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # relations
+    user = models.ForeignKey(User, related_name="user_composes",
+                             on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.subject

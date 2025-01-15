@@ -5,9 +5,12 @@ from django.db import transaction
 from .models import *
 from .serializers import *
 from config.tasks import send_bulk_mails, send_mails_to_specific_mail
+from rest_framework.permissions import IsAuthenticated
 
 
 class MailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     @transaction.atomic
     def post(self, request):
         try:
@@ -17,11 +20,11 @@ class MailView(APIView):
             email_addresses = data.getlist('email_addresses')
             configuration = data.get('configuration', None)
             attachments = data.getlist('attachments', None)
-            print("all attachments: ", attachments)
+            user = request.user
             email_compose_serializer = EmailComposeSerializer(
                 data={'subject': subject, 'body': body, 'configurations': configuration})
             if email_compose_serializer.is_valid():
-                email_compose = email_compose_serializer.save()
+                email_compose = email_compose_serializer.save(user=user)
                 if attachments is not None and len(attachments) > 0:
                     for attachment in attachments:
                         Attachment.objects.create(
@@ -51,14 +54,18 @@ class MailView(APIView):
 
 
 class EmailComposeView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        emails = Email_Compose.objects.all()
+        user = request.user
+        emails = Email_Compose.objects.filter(user=user)
         serializer = EmailComposeSerializerForView(emails, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ViewsSpecificMail(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, id):
         outbox_entries = Outbox.objects.filter(email_compose__id=id)
 
@@ -76,11 +83,14 @@ class ViewsSpecificMail(APIView):
 
 
 class SMTPConfigurationView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         data = request.data
+        user = request.user
         serializer = SMTPConfigurationSerializer(data=data)
         if serializer.is_valid():
-            config = serializer.save()
+            config = serializer.save(user=user)
             return Response({
                 "status": "success",
                 "details": "Successfully added configuration",
@@ -94,7 +104,8 @@ class SMTPConfigurationView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        all_configurations = SMTPConfiguration.objects.all()
+        user = request.user
+        all_configurations = SMTPConfiguration.objects.filter(user=user)
         serializer = SMTPConfigurationSerializerForView(
             all_configurations, many=True)
         return Response(serializer.data)
