@@ -25,8 +25,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_celery_results',
+    'rest_framework.authtoken',
     # custom
-    'mail'
+    'mail',
+    'account',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +87,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Auth settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 
 # Internationalization
