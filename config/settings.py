@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     # custom
     'mail',
     'account',
+    'bulk_sms',
 ]
 
 MIDDLEWARE = [
