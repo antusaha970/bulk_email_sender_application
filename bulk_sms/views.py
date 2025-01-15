@@ -13,26 +13,28 @@ from rest_framework.permissions import IsAuthenticated
 class SmsConfigurationView(APIView):
     permission_classes=[IsAuthenticated]
     def post(self, request):
-       
+        print("welcome")
         username=request.data.get("username")
         account_sid=request.data.get("account_sid")
         auth_token=request.data.get("auth_token")
         sender_number=request.data.get("sender_number")
         user=request.user
+        print(username,account_sid,auth_token,sender_number,user)
         if not all([username, account_sid, auth_token, sender_number]):
             return Response(
                 {"errors": "username, account_sid, auth_token, sender_number,are required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-
+        print("previous")
         serializer = SmsConfigurationSerializer(data={
             "username":username,
             "account_sid":account_sid,
             "auth_token":auth_token,
             "sender_number":sender_number,
-            "user":user
+            "user":user.id
         })
+        print("after")
         if serializer.is_valid():
             sms_config = serializer.save()
             return Response({
