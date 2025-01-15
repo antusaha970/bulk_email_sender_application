@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}View Dues{% endblock %}
+{% block xtracss %}
+  <link rel="stylesheet" href="{% static 'css/sales.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tables.css' %}">
+{% endblock %}
+{% block content %}
+<div id="content">
+      <div class="container mt-3 mb-5">
+         <div class="row align-items-center">
+          <div class="col px-0">
+            <div class="search-wrapper">
+              <form method="get" action="{% url 'dues_view' %}">
+                <input
+                  name="search"
+                  type="text"
+                  placeholder="Search member with id, name and email"
+                  value="{{search_query}}"
+                />
+                <div class="search-component">
+                  <select name="sort">
+                      <option value="member__member_ID" {% if sort_query == 'member__member_ID' %}selected{% endif %}>Member ID</option>
+                      <option value="emails" {% if sort_query == 'emails' %}selected{% endif %}>Email</option>
+                      <option value="sales_from_date" {% if sort_query == 'sales_from_date' %}selected{% endif %}>Sales from</option>
+                      <option value="sales_code" {% if sort_query == 'sales_code' %}selected{% endif %}>Sales Code</option>
+                  </select>
+                  <button type="submit">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1rem"
+                      height="1rem"
+                      viewBox="0 0 2048 2048"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M1468 1139q-52 43-89 96q-83-42-173-62t-184-21q-108 0-206 27t-184 76t-154 119t-119 155t-76 185t-27 206H128q0-146 43-281t124-247t193-196t254-129q-54-36-96-83t-72-102t-46-116t-16-126q0-106 40-199t110-162t163-110t199-41t199 40t162 110t110 163t41 199q0 65-16 126t-45 117t-73 102t-97 83q43 14 83 31t80 40M640 640q0 80 30 149t82 122t122 83t150 30q79 0 149-30t122-82t83-122t30-150q0-79-30-149t-82-122t-123-83t-149-30q-80 0-149 30t-122 82t-83 123t-30 149m1090 511q66 0 125 25t102 69t69 102t26 125q0 66-25 124t-69 102t-103 69t-125 26q-97 0-177-54l-292 292q-19 19-45 19t-45-19t-19-45t19-45l292-292q-54-80-54-177q0-66 25-124t69-102t102-69t125-26m0 514q40 0 75-15t61-41t42-62t16-75q0-40-15-75t-42-61t-61-42t-76-15q-40 0-75 15t-61 42t-42 61t-15 75q0 40 15 75t41 61t62 42t75 15"
+                      />
+                    </svg>
+                  </button>
+              </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-auto">
+            <a href="{% url 'export_dues' %}" class="text-decoration-none text-primary">
+              Export
+            </a>
+          </div>
+      </div>
+        <div class="d-flex align-items-center gap-4 mt-3">
+          <p class="mb-0">Search Dates in Range: </p>
+          <div class="date-range-picker">
+              <form action="{% url 'dues_view' %}" method="get" id="dateRangeForm">
+                <input type="text"
+                       name="date_range"
+                       value="{{date_range|default:''}}"
+                       id="dateRangePicker"
+                       class="form-control date-input"
+                       placeholder="Select date"
+                       onchange="applyDateRange()"
+                       readonly />
+              </form>
+            </div>
+            <a href="{% url 'dues_view' %}">Clear Filter</a>
+        </div>
+        <div class="d-flex align-items-center justify-content-between my-2">
+          <h3>Dues Data</h3>
+        </div>
+
+
+       <div class="table-wrapper">
+        <table class="table table-striped" style="width: 1600px;">
+          <thead>
+            <tr class="table-info">
+              <th>Due Date</th>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Due Amount</th>
+              <th>Due Type</th>
+              <th>SalesInfo</th>
+              <th>Remaining Due</th>
+              <th>Payment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for due in dues %}
+            <tr>
+              <td>{{due.due_date}}</td>
+              <td>{{due.memberInfo__member_ID}}</td>
+              <td>{{due.memberInfo__first_name}} {{due.memberInfo__last_name}}</td>
+              <td>{{due.due_amount}}</td>
+              <td>{{due.due_type__name}}</td>
+              <td><span class="d-none">''</span>
+              {% if due.salesInfo__sales_code %}
+              {{due.salesInfo__sales_code}}
+              {% else %}
+              <p>Not Applicable</p>
+              {% endif %}
+              </td>
+              <td>{{due.remaining_due}}</td>
+              <td>{% if due.is_paid%}
+                <span class="text-success">Paid</span>
+                {% else %}
+                <span class="text-danger">Unpaid</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+       </div>
+
+        <ul class="pagination">
+    {% if sales.has_previous %}
+        <li>
+            <a href="?page={{ sales.previous_page_number }}&{{ query_params.urlencode }}">Previous</a>
+        </li>
+    {% endif %}
+
+    {% for num in sales.paginator.page_range %}
+        <li class="{% if sales.number == num %}active{% endif %}">
+            <a href="?page={{ num }}&{{ query_params.urlencode }}">{{ num }}</a>
+        </li>
+    {% endfor %}
+
+    {% if sales.has_next %}
+        <li>
+            <a href="?page={{ sales.next_page_number }}&{{ query_params.urlencode }}">Next</a>
+        </li>
+    {% endif %}
+        </ul>
+</div>
+{% endblock %}
