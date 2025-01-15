@@ -88,7 +88,8 @@ class SMTPConfigurationView(APIView):
     def post(self, request):
         data = request.data
         user = request.user
-        serializer = SMTPConfigurationSerializer(data=data)
+        serializer = SMTPConfigurationSerializer(
+            data=data, context={'user': user})
         if serializer.is_valid():
             config = serializer.save(user=user)
             return Response({
