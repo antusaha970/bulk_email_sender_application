@@ -150,3 +150,81 @@ class SmsComposeView(APIView):
             "status": "success",
             "details": serializer_data
         }, status=status.HTTP_200_OK)
+
+
+
+
+from openpyxl import load_workbook
+from io import BytesIO
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
+# from .models import Email_Address_List, Email_Address
+from django.db import transaction
+from rest_framework import status
+# from .serializers import EmailAddressListSerializer
+
+
+class Recipient_Number_List_View(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        try:
+            # user = request.user
+            data = request.data
+            file = data['file']
+
+            # Read the Excel file
+            wb = load_workbook(filename=BytesIO(file.read()), data_only=True)
+            sheet = wb.active
+            Numbers = []
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                number = row[0]
+                if number:
+                    try:
+                        validate_email(number)
+                        Numbers.append(number)
+                    except ValidationError as e:
+                        print("Error ", e)
+
+            # name = user.username
+            # previous_list = Email_Address_List.objects.filter(
+            #     user=user).order_by("created_at").first()
+            # if previous_list:
+            #     id = previous_list.id
+            # else:
+            #     id = 0
+            # name = f"user.username-list-{id+1}"
+
+            # ?
+            return Response(
+                {
+                    'data': Numbers
+                }
+            )
+            #     except Exception as e:
+            #         return Response({
+            #             'status': "failed",
+            #             'errors': str(e)
+            #         }, status=status.HTTP_400_BAD_REQUEST)
+            # return Response({
+            #     'data': []
+            # })
+
+        except Exception as e:
+            return Response({
+                'status': "failed",
+                'errors': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    # def get(self, request):
+    #     user = request.user
+    #     email_address_list = Email_Address_List.objects.filter(user=user)
+    #     serializer = EmailAddressListSerializer(
+    #         email_address_list, many=True)
+    #     return Response({
+    #         'data': serializer.data
+    #     })

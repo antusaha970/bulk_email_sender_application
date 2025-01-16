@@ -7,5 +7,7 @@ urlpatterns = [
     path('sms_compose/',SmsComposeView.as_view(),name="sms_compose"),
     path('view_sandbox/',SandboxView.as_view(),name="view_sandbox"),
     path('view_recipients/',RecipentsView.as_view(),name="view_recipients"),
+    path("email_address_list/", Email_Address_List_View.as_view())
+
     # path()
 ]
