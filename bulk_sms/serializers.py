@@ -17,10 +17,11 @@ class SmsComposeSerializer(serializers.ModelSerializer):
         model=SmsCompose
         fields="__all__"
 
+
 class SmsComposeSerializerForView(serializers.ModelSerializer):
     class Meta:
         model=SmsCompose
-        fields=["id","sms_configuration","recipient_number"]
+        fields=["id","sms_configuration","recipient_number","body"]
 
 
 class RecipientsSerializer(serializers.ModelSerializer):
