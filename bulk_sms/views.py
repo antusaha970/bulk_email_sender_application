@@ -14,25 +14,28 @@ class SmsConfigurationView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        print("welcome")
         username = request.data.get("username")
         account_sid = request.data.get("account_sid")
         auth_token = request.data.get("auth_token")
         sender_number = request.data.get("sender_number")
         user = request.user
-
+        print(username, account_sid, auth_token, sender_number, user)
         if not all([username, account_sid, auth_token, sender_number]):
             return Response(
                 {"errors": "username, account_sid, auth_token, sender_number,are required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        print("previous")
         serializer = SmsConfigurationSerializer(data={
             "username": username,
             "account_sid": account_sid,
             "auth_token": auth_token,
             "sender_number": sender_number,
-            "user": user
+            "user": user.id
         })
+        print("after")
         if serializer.is_valid():
             sms_config = serializer.save()
             return Response({
@@ -55,7 +58,11 @@ class SmsConfigurationView(APIView):
         configurations = SmsConfiguration.objects.filter(user=user)
         serializer = SmsConfigurationSerializerForview(
             configurations, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": "success",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
 
 
 class SandboxView(APIView):
@@ -107,32 +114,36 @@ class SmsComposeView(APIView):
                 "message": "Invalid SMS configuration ID"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        # Create SmsCompose object
-        sms_compose = SmsCompose.objects.create(
-            body=body,
-            sms_configuration=sms_config,
-            recipient_number=", ".join(recipients),
-            user=user
-        )
-
-        for recipient_number in recipients:
-            send_sms_task.delay(
+        with transaction.atomic():
+            sms_compose = SmsCompose.objects.create(
                 body=body,
-                sender_number=sms_config.sender_number,
-                recipient_number=recipient_number,
-                sms_compose_id=sms_compose.id,
-                config_id=sms_config.id
+                sms_configuration=sms_config,
+                recipient_number=", ".join(recipients),
+                user=user
             )
 
-        return Response({
-            "status": "processing",
-            "sms_compose_id": sms_compose.id,
-            "message": "SMS sending tasks have been queued."
-        }, status=status.HTTP_202_ACCEPTED)
+            for recipient_number in recipients:
+                send_sms_task.delay(
+                    body=body,
+                    sender_number=sms_config.sender_number,
+                    recipient_number=recipient_number,
+                    sms_compose_id=sms_compose.id,
+                    config_id=sms_config.id
+
+                )
+
+            return Response({
+                "status": "processing",
+                "sms_compose_id": sms_compose.id,
+                "message": "SMS sending tasks have been queued."
+            }, status=status.HTTP_202_ACCEPTED)
 
     def get(self, request):
         user = request.user
-        sms_compose = SmsCompose.objects.filter(user=user)
+        try:
+            sms_compose = SmsCompose.objects.filter(user=user)
+        except SmsCompose.DoesNotExist:
+            return Response({"errors": "Sms Compose user not found"})
         serializer_data = SmsComposeSerializerForView(
             sms_compose, many=True).data
         return Response({
