@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Email_Address_List, Email_Address
 from django.db import transaction
 from rest_framework import status
+from .serializers import EmailAddressListSerializer
 
 
 class Email_Address_List_View(APIView):
@@ -71,3 +72,12 @@ class Email_Address_List_View(APIView):
                 'status': "failed",
                 'errors': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        user = request.user
+        email_address_list = Email_Address_List.objects.filter(user=user)
+        serializer = EmailAddressListSerializer(
+            email_address_list, many=True)
+        return Response({
+            'data': serializer.data
+        })
