@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'mail',
     'account',
     'bulk_sms',
+    'email_address',
 ]
 
 MIDDLEWARE = [
