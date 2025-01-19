@@ -1,7 +1,7 @@
 from django.test import TestCase
 from faker import Faker
 from django.contrib.auth.models import User
-from .models import SMTPConfiguration, Email_Compose
+from .models import SMTPConfiguration, Email_Compose, Recipient, Outbox
 from .serializers import SMTPConfigurationSerializer, EmailComposeSerializer
 
 
@@ -43,6 +43,54 @@ class ModelTest(TestCase):
         self.assertEqual(subject, email_compose.subject)
         self.assertEqual(body, email_compose.body)
         self.assertEqual(self.user.id, email_compose.user.id)
+
+    def test_Recipient_model_with_valid_data(self):
+        """
+            Test Recipient model with valid data
+        """
+        username = self.faker.user_name()
+        password = self.faker.password(length=8)
+        config = SMTPConfiguration.objects.create(
+            username=username, password=password, user=self.user)
+
+        subject = self.faker.text(max_nb_chars=250)
+        body = " ".join(self.faker.texts(nb_texts=5))
+
+        email_compose = Email_Compose.objects.create(
+            subject=subject, body=body, configurations=config, user=self.user)
+
+        email_address = self.faker.email()
+        status = "pending"
+
+        recipient = Recipient.objects.create(
+            email_address=email_address, status=status, email_compose=email_compose)
+        self.assertEqual(email_address, recipient.email_address)
+        self.assertEqual(status, recipient.status)
+        self.assertEqual(email_compose.id, recipient.email_compose.id)
+
+    def test_Outbox_model_with_valid_data(self):
+        """
+            Test Recipient model with valid data
+        """
+        username = self.faker.user_name()
+        password = self.faker.password(length=8)
+        config = SMTPConfiguration.objects.create(
+            username=username, password=password, user=self.user)
+
+        subject = self.faker.text(max_nb_chars=250)
+        body = " ".join(self.faker.texts(nb_texts=5))
+
+        email_compose = Email_Compose.objects.create(
+            subject=subject, body=body, configurations=config, user=self.user)
+
+        email_address = self.faker.email()
+        status = "pending"
+
+        recipient = Outbox.objects.create(
+            email_address=email_address, status=status, email_compose=email_compose)
+        self.assertEqual(email_address, recipient.email_address)
+        self.assertEqual(status, recipient.status)
+        self.assertEqual(email_compose.id, recipient.email_compose.id)
 
 
 class SerializerTest(TestCase):
@@ -102,3 +150,18 @@ class SerializerTest(TestCase):
         serializer = EmailComposeSerializer(data=_data)
 
         self.assertEqual(True, serializer.is_valid())
+
+    def test_EmailComposeSerializer_with_invalid_data(self):
+
+        subject = self.faker.text(max_nb_chars=250)
+        body = " ".join(self.faker.texts(nb_texts=5))
+
+        _data = {
+            'subject': subject,
+            'body': body,
+            'configurations': 10
+        }
+
+        serializer = EmailComposeSerializer(data=_data)
+
+        self.assertEqual(False, serializer.is_valid())
