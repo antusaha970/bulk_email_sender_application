@@ -113,12 +113,13 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
                         Recipient.objects.create(
                             email_address=outbox.email_address, email_compose=outbox.email_compose, status="success")
                     except Exception as e:
-                        outbox.status = 'failed'
-                        outbox.save()
                         print("Error: ", e)
                         raise Exception(e)
 
             except Exception as e:
+                outbox.status = 'failed'
+                outbox.failed_reason = str(e)
+                outbox.save()
                 print("Error: ", e)
                 raise Exception(e)
             print("success..")
