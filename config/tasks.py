@@ -103,28 +103,32 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
                     for attachment in attachments:
                         email.attach_file(attachment.file.path)
                     try:
-                        email.send(fail_silently=False)
+                        # For testing purposes
+                        if outbox.email_address == "somethingladjflkjadslf@gmail.com":
+                            raise Exception("Something went wrong")
+                        response = email.send(fail_silently=False)
+                        print("Response from email: ", response)
                         outbox.status = 'success'
                         outbox.save()
                         Recipient.objects.create(
                             email_address=outbox.email_address, email_compose=outbox.email_compose, status="success")
-                    except SMTPException as e:
+                    except Exception as e:
                         outbox.status = 'failed'
                         outbox.save()
-                        self.retry(exc=exc)
+                        print("Error: ", e)
+                        raise Exception(e)
 
             except Exception as e:
-                print(e)
+                print("Error: ", e)
+                raise Exception(e)
             print("success..")
             return True
         except Exception as e:
-            print("Error ....")
-            print(e)
-            raise self.retry(exc=exc)
-    except Exception as exc:
-        print(exc)
-        raise self.retry(exc=exc)
-
+            print("Error: ", e)
+            raise Exception(e)
+    except Exception as e:
+        print("Error: ", e)
+        raise self.retry(exc=e)
 
 
 # bind=True, max_retries=3, default_retry_delay=3
@@ -140,7 +144,7 @@ def send_sms_task(body, sender_number, recipient_number, sms_compose_id, config_
             body=body,
             from_=sender_number,
             to=recipient_number,
-           
+
         )
 
         # Log success
@@ -155,7 +159,7 @@ def send_sms_task(body, sender_number, recipient_number, sms_compose_id, config_
             sender_number=sender_number,
             recipient_number=recipient_number
         )
-        return  {"recipient_number": recipient_number, "status": "success", "sid": message.sid}
+        return {"recipient_number": recipient_number, "status": "success", "sid": message.sid}
 
     except Exception as e:
         # Log failure
@@ -166,4 +170,3 @@ def send_sms_task(body, sender_number, recipient_number, sms_compose_id, config_
             failed_reason=str(e)
         )
         return {"recipient_number": recipient_number, "status": "failed", "reason": str(e)}
-
