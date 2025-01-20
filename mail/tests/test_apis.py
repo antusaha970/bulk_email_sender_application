@@ -54,3 +54,19 @@ class MailAPITest(APITestCase):
             "status": "success",
             "details": "Successfully added configuration"
         }))
+
+    def test_setup_configuration_with_invalid_data(self):
+        """
+            Test for setup configuration with invalid 
+        """
+        data = {
+            "username": "xxyyzz@gmail.com",
+        }
+        # Set Auth token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
+
+        _response = self.client.post(
+            "/api/v1/configurations/", data=data, format="json")
+
+        # Assert responses
+        self.assertEqual(_response.status_code, 400)
