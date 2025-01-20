@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from faker import Faker
 from rest_framework.authtoken.models import Token
+import json
 
 
 class MailAPITest(APITestCase):
@@ -16,11 +17,11 @@ class MailAPITest(APITestCase):
         """
             Get all configurations with auth provided
         """
-
+        # Set Auth token
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
         response = self.client.get("/api/v1/configurations/")
         _data = response.json()
-
+        # Assert responses
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(_data), 0)
 
@@ -30,5 +31,26 @@ class MailAPITest(APITestCase):
         """
 
         response = self.client.get("/api/v1/configurations/")
-
+        # Assert responses
         self.assertEqual(response.status_code, 401)
+
+    def test_setup_configuration_with_valid_data(self):
+        """
+            Test for setup configuration with minimum required data
+        """
+        data = {
+            "username": "somting",
+            "password": "abc123",
+        }
+        # Set Auth token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
+
+        _response = self.client.post(
+            "/api/v1/configurations/", data=data, format="json")
+
+        # Assert responses
+        self.assertEqual(_response.status_code, 201)
+        self.assertJSONEqual(json.dumps(_response.json()), json.dumps({
+            "status": "success",
+            "details": "Successfully added configuration"
+        }))

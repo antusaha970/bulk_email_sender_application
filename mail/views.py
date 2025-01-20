@@ -95,8 +95,6 @@ class SMTPConfigurationView(APIView):
             return Response({
                 "status": "success",
                 "details": "Successfully added configuration",
-                "username": config.username,
-                "id": config.id
             }, status=status.HTTP_201_CREATED)
         else:
             return Response({
