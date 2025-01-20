@@ -79,14 +79,17 @@ class MailAPITest(APITestCase):
         self.assertEqual(_response.status_code, 400)
 
 
-# class SendMailAPITest(APITestCase):
-#     def setUp(self):
-#         self.faker = Faker()
-#         self.user = User.objects.create(username=self.faker.user_name())
-#         self.user.set_password(self.faker.password(length=10))
-#         token, _ = Token.objects.get_or_create(user=self.user)
-#         self.token = token
-#         _data = {
-#             "username": "ahmedsalauddin677785@gmail.com",
-#             "password": "knrtmfxcgqcqqdxy",
-#         }
+class SendMailAPITest(APITestCase):
+    def setUp(self):
+        self.faker = Faker()
+        self.user = User.objects.create(username=self.faker.user_name())
+        self.user.set_password(self.faker.password(length=10))
+        token, _ = Token.objects.get_or_create(user=self.user)
+        self.token = token
+        self._data = {
+            "name": "aws_ses_config",
+            "provider": "ses",
+            "aws_access_key_id": "AKIA3C6FLXG7S5FS3V5J",
+            "aws_secret_access_key": "BKkZOQosSxQ+4XS5QVrHUYdVOwiOf3F3G+tNzEnAj7Uy",
+            "host": "email-smtp.us-east-1.amazonaws.com"
+        }
