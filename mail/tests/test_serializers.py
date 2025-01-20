@@ -16,11 +16,16 @@ class SerializerTest(TestCase):
         """
             Test for the SMTP configuration serializer with valid data
         """
-        username = self.faker.user_name()
-        password = self.faker.password(length=8)
+        aws_access_key_id = self.faker.text(max_nb_chars=20)
+        aws_secret_access_key = self.faker.text(max_nb_chars=20)
+        host = self.faker.text(max_nb_chars=20)
+        name = self.faker.text(max_nb_chars=20)
+
         data = {
-            'username': username,
-            'password': password
+            'aws_access_key_id': aws_access_key_id,
+            'aws_secret_access_key': aws_secret_access_key,
+            'host': host,
+            'name': name,
         }
         serializer = SMTPConfigurationSerializer(
             data=data, context={'user': self.user})

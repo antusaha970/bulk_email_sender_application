@@ -3,22 +3,23 @@ from django.contrib.auth.models import User
 
 
 class SMTPConfiguration(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)  # r
     provider = models.CharField(max_length=50, choices=[
         ('gmail', 'Gmail'),
         ('personal', 'Personal Domain'),
         ('ses', 'Amazon SES'),
-    ], default="gmail")
-    host = models.CharField(max_length=255, blank=True, null=True)
+    ], default="gmail")  # r
+    host = models.CharField(max_length=255, blank=True, null=True)  # r
     port = models.IntegerField(blank=True, null=True)
     username = models.CharField(max_length=255, null=True, blank=True)
 
     password = models.CharField(max_length=255, null=True, blank=True)
     use_tls = models.BooleanField(default=True, null=True, blank=True)
     use_ssl = models.BooleanField(default=False, null=True, blank=True)
-    aws_access_key_id = models.CharField(max_length=255, null=True, blank=True)
+    aws_access_key_id = models.CharField(
+        max_length=255, null=True, blank=True)  # r
     aws_secret_access_key = models.CharField(
-        max_length=255, null=True, blank=True)
+        max_length=255, null=True, blank=True)  # r
     aws_region = models.CharField(max_length=50, null=True, blank=True)
     ses_configuration_set = models.CharField(
         max_length=255, null=True, blank=True)

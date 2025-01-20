@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from faker import Faker
 from rest_framework.authtoken.models import Token
 import json
+from ..models import SMTPConfiguration
 
 
 class MailAPITest(APITestCase):
@@ -38,9 +39,15 @@ class MailAPITest(APITestCase):
         """
             Test for setup configuration with minimum required data
         """
+        aws_access_key_id = self.faker.text(max_nb_chars=20)
+        aws_secret_access_key = self.faker.text(max_nb_chars=20)
+        host = self.faker.text(max_nb_chars=20)
+        name = self.faker.text(max_nb_chars=20)
         data = {
-            "username": "somting",
-            "password": "abc123",
+            "aws_access_key_id": aws_access_key_id,
+            "aws_secret_access_key": aws_secret_access_key,
+            "host": host,
+            "name": name,
         }
         # Set Auth token
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
@@ -70,3 +77,16 @@ class MailAPITest(APITestCase):
 
         # Assert responses
         self.assertEqual(_response.status_code, 400)
+
+
+# class SendMailAPITest(APITestCase):
+#     def setUp(self):
+#         self.faker = Faker()
+#         self.user = User.objects.create(username=self.faker.user_name())
+#         self.user.set_password(self.faker.password(length=10))
+#         token, _ = Token.objects.get_or_create(user=self.user)
+#         self.token = token
+#         _data = {
+#             "username": "ahmedsalauddin677785@gmail.com",
+#             "password": "knrtmfxcgqcqqdxy",
+#         }

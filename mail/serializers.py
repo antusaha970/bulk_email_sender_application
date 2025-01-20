@@ -5,16 +5,18 @@ from .models import *
 class SMTPConfigurationSerializerForView(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = ['id', 'username']
+        fields = ['id', 'name']
 
 
 class SMTPConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = ['username', 'password']
+        fields = "__all__"
         extra_kwargs = {
-            'username': {'required': True},
-            'password': {'required': True},
+            'aws_access_key_id': {'required': True},
+            'aws_secret_access_key': {'required': True},
+            'host': {'required': True},
+            'name': {'required': True},
         }
 
     def validate(self, attrs):

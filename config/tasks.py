@@ -8,6 +8,8 @@ from django.db import transaction
 
 from twilio.rest import Client
 from bulk_sms.models import SmsRecipients, SandBox, SmsConfiguration, SmsCompose
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=3)
@@ -77,14 +79,24 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
             config = SMTPConfiguration.objects.get(
                 pk=email_compose.configurations.id)
 
+           # Create the EmailBackend object
             email_backend = EmailBackend(
-                host='smtp.gmail.com',
-                port=587,
-                username=config.username,
-                password=config.password,
-                use_tls=True,
-                fail_silently=False,
+                host=config.host,
+                port=2587,  # Use 465 for SSL, 587 for TLS
+                username=config.aws_access_key_id,
+                password=config.aws_secret_access_key,
+                use_tls=True,  # Use TLS (recommended for Amazon SES)
+                fail_silently=False,  # Set to True if you don't want errors raised
             )
+            # for gmail
+            # email_backend = EmailBackend(
+            #     host='smtp.gmail.com',
+            #     port=587,
+            #     username=config.username,
+            #     password=config.password,
+            #     use_tls=True,
+            #     fail_silently=False,
+            # )
             outbox = Outbox.objects.get(
                 email_compose=email_compose, email_address=email)
 
@@ -94,18 +106,19 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
                     email = EmailMessage(
                         subject=email_compose.subject,
                         body=email_compose.body,
-                        from_email='antu.digi.88@gmail.com',
+                        from_email='azislam.513@gmail.com',
                         to=[outbox.email_address],
                         connection=email_backend,  # Pass the custom backend
                     )
                     email.extra_headers = {
-                        'Return-Path': 'antu.digi.88@gmail.com'}
+                        'Return-Path': 'azislam.513@gmail.com'}
                     for attachment in attachments:
                         email.attach_file(attachment.file.path)
                     try:
                         # For testing purposes
-                        if outbox.email_address == "somethingladjflkjadslf@gmail.com":
-                            raise Exception("Something went wrong")
+                        # client_boto3 = boto3.client(
+                        #     "ses", "us-east-1", config.aws_access_key_id, config.aws_secret_access_key)
+
                         response = email.send(fail_silently=False)
                         print("Response from email: ", response)
                         outbox.status = 'success'
@@ -113,6 +126,12 @@ def send_mails_to_specific_mail(self, email, email_compose_id):
                         Recipient.objects.create(
                             email_address=outbox.email_address, email_compose=outbox.email_compose, status="success")
                     except Exception as e:
+                        print("Error: ", e)
+                        raise Exception(e)
+                    except ClientError as e:
+                        print("Error: ", e)
+                        raise Exception(e)
+                    except BotoCoreError as e:
                         print("Error: ", e)
                         raise Exception(e)
 
