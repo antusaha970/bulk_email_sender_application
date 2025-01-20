@@ -20,12 +20,12 @@ class SMTPConfigurationSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        username = attrs.get('username')
+        name = attrs.get('name')
         user = self.context.get('user')
 
-        is_exist_username = SMTPConfiguration.objects.filter(
-            username=username, user=user).exists()
-        if is_exist_username:
+        is_exist = SMTPConfiguration.objects.filter(
+            name=name, user=user).exists()
+        if is_exist:
             raise serializers.ValidationError(
                 {"username": ["This username must be unique."]}, 400)
         return super().validate(attrs)
