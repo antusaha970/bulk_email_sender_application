@@ -196,13 +196,45 @@ class Recipient_Number_List_View(APIView):
         except Exception as e:
             return Response({'status': 'failed', 'errors': str(e)}, status=400)
         
-        
+class SpecificComposeView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    # def get(self, request):
-    #     user = request.user
-    #     email_address_list = Email_Address_List.objects.filter(user=user)
-    #     serializer = EmailAddressListSerializer(
-    #         email_address_list, many=True)
-    #     return Response({
-    #         'data': serializer.data
-    #     })
+    def get(self, request, compose_id):
+        if not compose_id:
+            return Response({"errors": "Compose ID not found"}, status=400)
+        try:
+            compose = SmsCompose.objects.get(id=compose_id)
+        except SmsCompose.DoesNotExist:
+            return Response({"errors": "SmsCompose does not exist"}, status=404)
+
+        user = request.user.id
+        body = compose.body
+        recipient_number_history = []
+
+        recipient_numbers = compose.recipient_number.split(",") 
+        recipient_numbers = [number.strip() for number in recipient_numbers]  
+
+        try:
+            for number in recipient_numbers:
+                history = SmsRecipients.objects.filter(phone_number=number).first()
+                if not history:
+                    recipient_number_history.append({
+                        "number": number,
+                        "status": "Not Found",
+                        "failed_reason": "Sandbox object not found for this number"
+                    })
+                else:
+                    recipient_number_history.append({
+                        "number": number,
+                        "status": history.status,
+                        "failed_reason": history.failed_reason
+                    })
+
+            data = {
+                "user_id": user,
+                "message_body": body,
+                "recipient_history": recipient_number_history
+            }
+            return Response({"data": data}, status=200)
+        except Exception as e:
+            return Response({'errors': str(e)}, status=400)
