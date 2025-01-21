@@ -75,8 +75,8 @@ class SandBox(models.Model):
 #         return self.name
 
 
-# class RecipientNumberExcel(models.Model):
-#     phone_number = models.()
+# class RecipientNumberList(models.Model):
+#     phone_number = models.CharField()
 #     # relations
 #     email_address_list = models.ForeignKey(
 #         Email_Address_List, related_name="sms_reci", on_delete=models.CASCADE)
@@ -85,4 +85,4 @@ class SandBox(models.Model):
 #         unique_together = ["email", "email_address_list"]
 
 #     def __str__(self):
-#         return self.email
+#         return self.phone_number
