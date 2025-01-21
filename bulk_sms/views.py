@@ -156,8 +156,6 @@ class SmsComposeView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-
-
 class Recipient_Number_List_View(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -167,7 +165,7 @@ class Recipient_Number_List_View(APIView):
 
             if 'file' not in data:
                 return Response({'status': 'failed', 'errors': 'File not provided.'}, status=400)
-            
+
             file = data['file']
 
             if not file.name.endswith(('.xlsx', '.xlsm')):
@@ -175,14 +173,15 @@ class Recipient_Number_List_View(APIView):
 
             # Read the Excel file
             try:
-                wb = load_workbook(filename=BytesIO(file.read()), data_only=True)
+                wb = load_workbook(filename=BytesIO(
+                    file.read()), data_only=True)
             except Exception as e:
                 return Response({'status': 'failed', 'errors': f'Error reading Excel file: {str(e)}'}, status=400)
 
             sheet = wb.active
             Numbers = set()
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
+            for row in sheet.iter_rows(values_only=True):
                 number = row[0]
                 if number:
                     try:
@@ -190,13 +189,11 @@ class Recipient_Number_List_View(APIView):
                         Numbers.add(number)
                     except ValueError:
                         continue
-            unique_numbers=list(Numbers)
+            unique_numbers = list(Numbers)
             return Response({'data': unique_numbers})
 
         except Exception as e:
             return Response({'status': 'failed', 'errors': str(e)}, status=400)
-        
-        
 
     # def get(self, request):
     #     user = request.user
