@@ -155,3 +155,4 @@ class SendMailAPITest(APITestCase):
         _response = self.client.get("/api/v1/view_mails/")
         # assert response
         self.assertEqual(_response.status_code, 200)
+        self.assertIn("data", _response.json())
