@@ -6,7 +6,7 @@ import json
 from ..models import SMTPConfiguration
 
 
-class MailAPITest(APITestCase):
+class SMTPConfigurationAPI(APITestCase):
     def setUp(self):
         self.faker = Faker()
         self.user = User.objects.create(username=self.faker.user_name())
@@ -144,3 +144,14 @@ class SendMailAPITest(APITestCase):
 
         # assert request
         self.assertEqual(_response.status_code, 400)
+
+    def test_view_sent_mail_api(self):
+        """
+            Test for view sent mail API with valid user
+        """
+        # add credentials
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
+
+        _response = self.client.get("/api/v1/view_mails/")
+        # assert response
+        self.assertEqual(_response.status_code, 200)
