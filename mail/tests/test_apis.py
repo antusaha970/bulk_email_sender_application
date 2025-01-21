@@ -93,3 +93,54 @@ class SendMailAPITest(APITestCase):
             "aws_secret_access_key": "BKkZOQosSxQ+4XS5QVrHUYdVOwiOf3F3G+tNzEnAj7Uy",
             "host": "email-smtp.us-east-1.amazonaws.com"
         }
+        config = SMTPConfiguration.objects.create(**self._data)
+        self.configId = config.id
+
+    def test_send_mail_api_with_valid_data(self):
+        """
+            Test send mail api with valid data provided
+        """
+        subject = self.faker.text(max_nb_chars=15)
+        body = self.faker.sentence(nb_words=25)
+        email_addresses = "antu.digi.88@gmail.com"
+        configuration = self.configId
+
+        _data = {
+            'subject': subject,
+            'body': body,
+            'email_addresses': email_addresses,
+            'configuration': configuration
+        }
+
+        # add auth token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
+
+        _response = self.client.post("/api/v1/send_mail/", data=_data)
+
+        # assert request
+        self.assertEqual(_response.status_code, 201)
+        self.assertIn("email_compose_id", _response.json())
+
+    def test_send_mail_api_with_invalid_data(self):
+        """
+            Test send mail api with invalid data provided (Invalid configuration id)
+        """
+        subject = self.faker.text(max_nb_chars=15)
+        body = self.faker.sentence(nb_words=25)
+        email_addresses = "antu.digi.88@gmail.com"
+        configuration = 1000
+
+        _data = {
+            'subject': subject,
+            'body': body,
+            'email_addresses': email_addresses,
+            'configuration': configuration
+        }
+
+        # add auth token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
+
+        _response = self.client.post("/api/v1/send_mail/", data=_data)
+
+        # assert request
+        self.assertEqual(_response.status_code, 400)
