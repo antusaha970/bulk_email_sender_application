@@ -60,6 +60,7 @@ class EmailComposeView(APIView):
         user = request.user
         emails = Email_Compose.objects.filter(user=user)
         serializer = EmailComposeSerializerForView(emails, many=True)
+
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
