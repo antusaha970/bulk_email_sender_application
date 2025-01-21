@@ -5,25 +5,27 @@ from .models import *
 class SMTPConfigurationSerializerForView(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = ['id', 'username']
+        fields = ['id', 'name']
 
 
 class SMTPConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SMTPConfiguration
-        fields = ['username', 'password']
+        fields = "__all__"
         extra_kwargs = {
-            'username': {'required': True},
-            'password': {'required': True},
+            'aws_access_key_id': {'required': True},
+            'aws_secret_access_key': {'required': True},
+            'host': {'required': True},
+            'name': {'required': True},
         }
 
     def validate(self, attrs):
-        username = attrs.get('username')
+        name = attrs.get('name')
         user = self.context.get('user')
 
-        is_exist_username = SMTPConfiguration.objects.filter(
-            username=username, user=user).exists()
-        if is_exist_username:
+        is_exist = SMTPConfiguration.objects.filter(
+            name=name, user=user).exists()
+        if is_exist:
             raise serializers.ValidationError(
                 {"username": ["This username must be unique."]}, 400)
         return super().validate(attrs)

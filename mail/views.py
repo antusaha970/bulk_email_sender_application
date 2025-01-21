@@ -60,6 +60,7 @@ class EmailComposeView(APIView):
         user = request.user
         emails = Email_Compose.objects.filter(user=user)
         serializer = EmailComposeSerializerForView(emails, many=True)
+
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -95,8 +96,6 @@ class SMTPConfigurationView(APIView):
             return Response({
                 "status": "success",
                 "details": "Successfully added configuration",
-                "username": config.username,
-                "id": config.id
             }, status=status.HTTP_201_CREATED)
         else:
             return Response({

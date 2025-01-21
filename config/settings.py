@@ -4,7 +4,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-i^z%dh5gp&)env!y*6g+u*lk55qpy1a+(4bcjziz#ggzq!k)!^'
+# SECRET_KEY = 'django-insecure-i^z%dh5gp&)env!y*6g+u*lk55qpy1a+(4bcjziz#ggzq!k)!^'
+SECRET_KEY = "django-insecure-gakx834-##i_nf=4%xbyeoszqia_o&#ho2ci@ki*14r6k^d("
 
 
 DEBUG = True
@@ -125,12 +126,13 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True  # Retry tasks if a worker crashes
 
 # MAIL Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'antu.digi.88@gmail.com'
-EMAIL_HOST_PASSWORD = 'jqmvdwmoarwzuytr'
 
 
 # CORS setting
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+# # SMTP Settings for Amazon SES
+
+# Ensure this email is verified in SES
+DEFAULT_FROM_EMAIL = "azislam.513@gmail.com"
