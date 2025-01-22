@@ -58,3 +58,31 @@ class SandBox(models.Model):
     
     def __str__(self):
         return f"Sender: {self.sender_number} to Recipient: {self.recipient_number}"
+    
+
+
+
+# class Email_Address_List(models.Model):
+#     name = models.CharField(max_length=300)
+#     # relations
+#     user = models.ForeignKey(
+#         User, related_name="email_address_list", on_delete=models.CASCADE)
+
+#     # record keeping
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return self.name
+
+
+# class RecipientNumberList(models.Model):
+#     phone_number = models.CharField()
+#     # relations
+#     email_address_list = models.ForeignKey(
+#         Email_Address_List, related_name="sms_reci", on_delete=models.CASCADE)
+
+#     class Meta:
+#         unique_together = ["email", "email_address_list"]
+
+#     def __str__(self):
+#         return self.phone_number

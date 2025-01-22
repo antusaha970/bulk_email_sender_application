@@ -32,6 +32,8 @@ class MailView(APIView):
                 for email in email_addresses:
                     outbox = Outbox.objects.create(
                         email_address=email, status='pending', email_compose=email_compose)
+                    transaction.on_commit(lambda: send_mails_to_specific_mail.delay(
+                        outbox.email_address, email_compose.id))
                     send_mails_to_specific_mail.delay_on_commit(
                         outbox.email_address, email_compose.id)
 

@@ -69,6 +69,7 @@ def send_bulk_mails(self, email_compose_id):
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=3)
 def send_mails_to_specific_mail(self, email, email_compose_id):
+
     print("Task received for mail: ", email)
     try:
         validate_email(email)

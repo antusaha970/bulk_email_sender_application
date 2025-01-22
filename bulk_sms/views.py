@@ -9,6 +9,10 @@ from config.tasks import send_sms_task
 from twilio.rest import Client
 from rest_framework.permissions import IsAuthenticated
 
+from openpyxl import load_workbook
+from io import BytesIO
+from django.core.exceptions import ValidationError
+
 
 class SmsConfigurationView(APIView):
     permission_classes = [IsAuthenticated]
@@ -114,29 +118,29 @@ class SmsComposeView(APIView):
                 "message": "Invalid SMS configuration ID"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        with transaction.atomic():
-            sms_compose = SmsCompose.objects.create(
+        # with transaction.atomic():
+        sms_compose = SmsCompose.objects.create(
+            body=body,
+            sms_configuration=sms_config,
+            recipient_number=", ".join(recipients),
+            user=user
+        )
+
+        for recipient_number in recipients:
+            send_sms_task.delay(
                 body=body,
-                sms_configuration=sms_config,
-                recipient_number=", ".join(recipients),
-                user=user
+                sender_number=sms_config.sender_number,
+                recipient_number=recipient_number,
+                sms_compose_id=sms_compose.id,
+                config_id=sms_config.id
+
             )
 
-            for recipient_number in recipients:
-                send_sms_task.delay(
-                    body=body,
-                    sender_number=sms_config.sender_number,
-                    recipient_number=recipient_number,
-                    sms_compose_id=sms_compose.id,
-                    config_id=sms_config.id
-
-                )
-
-            return Response({
-                "status": "processing",
-                "sms_compose_id": sms_compose.id,
-                "message": "SMS sending tasks have been queued."
-            }, status=status.HTTP_202_ACCEPTED)
+        return Response({
+            "status": "processing",
+            "sms_compose_id": sms_compose.id,
+            "message": "SMS sending tasks have been queued."
+        }, status=status.HTTP_202_ACCEPTED)
 
     def get(self, request):
         user = request.user
@@ -150,3 +154,88 @@ class SmsComposeView(APIView):
             "status": "success",
             "details": serializer_data
         }, status=status.HTTP_200_OK)
+
+
+class Recipient_Number_List_View(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            data = request.data
+
+            if 'file' not in data:
+                return Response({'status': 'failed', 'errors': 'File not provided.'}, status=400)
+
+            file = data['file']
+
+            if not file.name.endswith(('.xlsx', '.xlsm')):
+                return Response({'status': 'failed', 'errors': 'Invalid file type.'}, status=400)
+
+            # Read the Excel file
+            try:
+                wb = load_workbook(filename=BytesIO(
+                    file.read()), data_only=True)
+            except Exception as e:
+                return Response({'status': 'failed', 'errors': f'Error reading Excel file: {str(e)}'}, status=400)
+
+            sheet = wb.active
+            Numbers = set()
+
+            for row in sheet.iter_rows(values_only=True):
+                number = row[0]
+                if number:
+                    try:
+                        number = str(number)
+                        Numbers.add(number)
+                    except ValueError:
+                        continue
+            unique_numbers = list(Numbers)
+            return Response({'data': unique_numbers})
+
+        except Exception as e:
+            return Response({'status': 'failed', 'errors': str(e)}, status=400)
+
+
+class SpecificComposeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, compose_id):
+        if not compose_id:
+            return Response({"errors": "Compose ID not found"}, status=400)
+        try:
+            compose = SmsCompose.objects.get(id=compose_id)
+        except SmsCompose.DoesNotExist:
+            return Response({"errors": "SmsCompose does not exist"}, status=404)
+
+        user = request.user.id
+        body = compose.body
+        recipient_number_history = []
+
+        recipient_numbers = compose.recipient_number.split(",")
+        recipient_numbers = [number.strip() for number in recipient_numbers]
+
+        try:
+            for number in recipient_numbers:
+                history = SmsRecipients.objects.filter(
+                    phone_number=number).first()
+                if not history:
+                    recipient_number_history.append({
+                        "number": number,
+                        "status": "Not Found",
+                        "failed_reason": "Sandbox object not found for this number"
+                    })
+                else:
+                    recipient_number_history.append({
+                        "number": number,
+                        "status": history.status,
+                        "failed_reason": history.failed_reason
+                    })
+
+            data = {
+                "user_id": user,
+                "message_body": body,
+                "recipient_history": recipient_number_history
+            }
+            return Response({"data": data}, status=200)
+        except Exception as e:
+            return Response({'errors': str(e)}, status=400)
