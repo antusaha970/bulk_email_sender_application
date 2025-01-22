@@ -26,6 +26,22 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - .:/app
+  
+  celery_flower: 
+    build:
+      context: .
+      dockerfile: "docker/celery_flower/Dockerfile"
+    depends_on:
+        - redis
+        - celery
+        
+    volumes:
+      - .:/app
+    ports:
+      - "5555:5555"
+
+
+
 
   redis:
     image: redis:6-alpine
